@@ -48,7 +48,12 @@ export const getUserOnboardingInfo = query({
     try {
       const onboardingUser = await ctx.db.query("onboardedUser").withIndex("by_userId", q => q.eq("userId", args.userId)).first();
       console.log("👤 `getUserOnboardingInfo` result:", onboardingUser);
-      return onboardingUser;
+      if (!onboardingUser) return null;
+
+      // Remove certain keys before returning. For example, let's exclude '_id' and '_creationTime'
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _id, _creationTime, userId, ...rest } = onboardingUser;
+      return rest;
     } catch (error) {
       console.log("⚠️ Error in `getUserOnboardingInfo` in onboarding.ts:", (error as Error).message);
       return null;
