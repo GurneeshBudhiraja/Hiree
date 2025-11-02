@@ -61,22 +61,22 @@ function Homepage() {
       {userInfo && (
         <button
           onClick={handleLogout}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
           title="Logout"
         >
-          <LogOut size={24} className="text-white" />
+          <LogOut size={24} className="text-foreground" />
         </button>
       )}
       <motion.h1
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeInOut" }}
-        className="text-8xl font-bold font-theme-playfair text-transparent from-zinc-100 via-zinc-300 to-zinc-500 bg-linear-to-br bg-clip-text"
+        className="text-8xl font-bold font-theme-playfair text-transparent from-zinc-800 via-zinc-700 to-zinc-600 bg-linear-to-br bg-clip-text"
       >
         Hiree
       </motion.h1>
       <motion.p
-        className="text-2xl text-center bg-linear-to-br bg-clip-text text-transparent from-zinc-100 via-zinc-300 to-zinc-500"
+        className="text-2xl text-center bg-linear-to-br bg-clip-text text-transparent from-zinc-800 via-zinc-700 to-zinc-600"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeInOut", delay: 0.1 }}

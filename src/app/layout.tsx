@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${poppins.variable} ${playfairDisplay.variable} antialiased dark`}
+        className={`${poppins.variable} ${playfairDisplay.variable} antialiased light`}
       >
         <ConvexClientProvider>
           <ApplicationContextProvider>
