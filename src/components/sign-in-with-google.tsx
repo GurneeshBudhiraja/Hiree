@@ -1,6 +1,12 @@
-export default function SignInWithGoogle({ onClick }: { onClick: () => void }) {
+export default function SignInWithGoogle({
+  onClick,
+  disabled = false,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <button className="gsi-material-button" onClick={onClick}>
+    <button className="gsi-material-button" onClick={onClick} disabled={disabled}>
       <div className="gsi-material-button-state"></div>
       <div className="gsi-material-button-content-wrapper">
         <div className="gsi-material-button-icon">

@@ -3,9 +3,32 @@ import { useApplicationContext } from "@/providers/application-context-provider"
 import SignInWithGoogle from "./sign-in-with-google";
 import { LayoutDashboard } from "lucide-react";
 import { motion } from "motion/react";
+import { signInWithGoogle as firebaseSignIn } from "@/lib/auth";
 
 function Homepage() {
-  const { userInfo, setUserInfo } = useApplicationContext();
+  const { userInfo, setUserInfo, setIsLoading, isLoading } =
+    useApplicationContext();
+
+  const handleGoToDashboard = () => {
+    console.log("Current Context:", {
+      userInfo,
+      isLoading,
+    });
+  };
+
+  const handleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const user = await firebaseSignIn();
+      setUserInfo(user);
+    } catch (error) {
+      console.error("Sign in failed:", error);
+      // You can add toast notification here for error handling
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4">
       <motion.h1
@@ -31,24 +54,9 @@ function Homepage() {
         transition={{ duration: 0.45, ease: "easeInOut", delay: 0.2 }}
       >
         {!userInfo ? (
-          <SignInWithGoogle
-            onClick={() => {
-              // TODO: implement sign in with google functionality
-              setUserInfo({
-                email: "",
-                name: "",
-                id: "",
-                isAuthenticated: true,
-              });
-            }}
-          />
+          <SignInWithGoogle onClick={handleSignIn} disabled={isLoading} />
         ) : (
-          <button
-            className="gsi-material-button"
-            onClick={() => {
-              // TODO: redirect the user to the dashboard if the onboarding has been completed otherwise redirect to the onboarding page
-            }}
-          >
+          <button className="gsi-material-button" onClick={handleGoToDashboard}>
             <div className="gsi-material-button-state"></div>
             <div className="gsi-material-button-content-wrapper">
               <div className="gsi-material-button-icon">
