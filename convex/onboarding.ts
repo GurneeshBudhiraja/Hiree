@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const isUserOnboarded = query({
@@ -6,8 +6,34 @@ export const isUserOnboarded = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const onboardedUser = await ctx.db.query("onboardedUser").withIndex("by_userId", q => q.eq("userId", args.userId)).first();
-    console.log("👤 `isUserOnboarded` result:", onboardedUser);
-    return onboardedUser !== null;
+    try {
+      const onboardedUser = await ctx.db.query("onboardedUser").withIndex("by_userId", q => q.eq("userId", args.userId)).first();
+      console.log("👤 `isUserOnboarded` result:", onboardedUser);
+      return onboardedUser !== null;
+    } catch (error) {
+      console.log("Error in `isUserOnboarded` in onboarding.ts:", (error as Error).message);
+      return false;
+    }
+  },
+});
+
+
+
+export const completeUserOnboarding = mutation({
+  args: {
+    userId: v.string(),
+    parsedResume: v.string(),
+    targetJobTitle: v.array(v.string()),
+    jobLocation: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      console.log("👤 completing user onboarding in `completeUserOnboarding`...");
+      const onboardingUser = await ctx.db.insert("onboardedUser", args);
+      return onboardingUser;
+    } catch (error) {
+      console.log("Error in `completeUserOnboarding` in onboarding.ts:", (error as Error).message);
+      return null;
+    }
   },
 });

@@ -23,6 +23,8 @@ export type ApplicationContextType = {
   setUserInfo: Dispatch<SetStateAction<UserInfo | null>>;
   isLoading: boolean;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
+  error: string | null;
+  setError: Dispatch<SetStateAction<string | null>>;
 };
 
 const ApplicationContext = createContext<ApplicationContextType | null>(null);
@@ -44,6 +46,7 @@ export default function ApplicationContextProvider({
 }) {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Sync Firebase auth state with context
   useEffect(() => {
@@ -56,14 +59,26 @@ export default function ApplicationContextProvider({
     };
   }, []);
 
+  // Auto-dismiss error toast after 2 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const applicationContextValue = useMemo(
     () => ({
       userInfo,
       setUserInfo,
       isLoading,
       setIsLoading,
+      error,
+      setError,
     }),
-    [userInfo, isLoading]
+    [userInfo, isLoading, error]
   );
   return (
     <ApplicationContext.Provider value={applicationContextValue}>

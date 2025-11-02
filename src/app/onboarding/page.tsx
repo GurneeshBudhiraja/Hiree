@@ -4,6 +4,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Briefcase, MapPin, Home, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useConvex } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useApplicationContext } from "@/providers/application-context-provider";
 
 export type OnboardingInfo = {
   resumeUploaded: boolean;
@@ -17,6 +20,8 @@ function OnboardingPage() {
   const [onboardingInfo, setOnboardingInfo] = useState<OnboardingInfo | null>(
     null
   );
+  const { userInfo, setError } = useApplicationContext();
+  const convex = useConvex();
   const [currentJobTitleInput, setCurrentJobTitleInput] = useState("");
   const router = useRouter();
   const resumeUploaded = onboardingInfo?.resumeUploaded ?? false;
@@ -47,8 +52,33 @@ function OnboardingPage() {
     }));
   };
 
-  const handleFinishSetup = () => {
-    console.log("Onboarding Info:", onboardingInfo);
+  // saves the data to the convex database
+  const handleFinishSetup = async () => {
+    if (!onboardingInfo) {
+      console.log("❌ No onboarding info found");
+      return;
+    }
+
+    if (!userInfo) {
+      console.log("❌ No user info found");
+      return;
+    }
+
+    const onboardingUser = await convex.mutation(
+      api.onboarding.completeUserOnboarding,
+      {
+        jobLocation: onboardingInfo.jobLocation,
+        parsedResume: onboardingInfo.parsedResumeContent,
+        targetJobTitle: onboardingInfo.targetJobTitles,
+        userId: userInfo.userId,
+      }
+    );
+    if (!onboardingUser) {
+      console.log("❌ Failed to complete user onboarding");
+      setError("Failed to complete user onboarding");
+      return;
+    }
+    router.push("/dashboard");
   };
 
   return (

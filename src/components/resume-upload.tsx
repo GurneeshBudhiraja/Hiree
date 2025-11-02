@@ -2,6 +2,8 @@
 import { useState, useRef, useMemo, Dispatch, SetStateAction } from "react";
 import { WandSparkles, Check, FileText, Sparkle } from "lucide-react";
 import { OnboardingInfo } from "@/app/onboarding/page";
+import { geminiParseResume } from "@/lib/gemini/index";
+import { useApplicationContext } from "@/providers/application-context-provider";
 
 export default function ResumeUpload({
   setOnboardingInfo,
@@ -14,6 +16,7 @@ export default function ResumeUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resumeUploaded = onboardingInfo?.resumeUploaded ?? false;
   const fileName = onboardingInfo?.fileName;
+  const { setError } = useApplicationContext();
 
   // Generate sparkle positions when loading starts (fixed positions for stability)
   const sparklePositions = useMemo(() => {
@@ -32,21 +35,47 @@ export default function ResumeUpload({
     setIsLoading(true);
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
+    reader.onloadend = async () => {
+      const base64DataUrl = reader.result as string;
 
-      // Simulate AI processing for aesthetic loading
-      setTimeout(() => {
-        console.log("PDF Base64 URL:", base64);
+      // Extract base64 string (remove data URL prefix)
+      const base64String = base64DataUrl.split(",")[1] || base64DataUrl;
+
+      try {
+        // Call Gemini API to parse resume and update the state with the parsed resume content
+        const parsedResumeContent = await geminiParseResume(base64String);
+
+        if (!parsedResumeContent) {
+          setError("Failed to parse resume. Please try again.");
+          // Reset state so user can try again
+          setOnboardingInfo(null);
+          // Reset file input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+          setIsLoading(false);
+          return;
+        }
+
         setOnboardingInfo({
           resumeUploaded: true,
-          parsedResumeContent: base64,
+          parsedResumeContent,
           targetJobTitles: onboardingInfo?.targetJobTitles || [],
           jobLocation: onboardingInfo?.jobLocation || "",
           fileName: file.name,
         });
+      } catch (error) {
+        setError("Failed to parse resume. Please try again.");
+        // Reset state so user can try again
+        setOnboardingInfo(null);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        console.error("Error parsing resume:", error);
+      } finally {
         setIsLoading(false);
-      }, 2000); // 2 second loading state
+      }
     };
     reader.readAsDataURL(file);
   };

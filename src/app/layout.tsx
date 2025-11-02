@@ -3,6 +3,7 @@ import "./globals.css";
 import { playfairDisplay, poppins } from "@/lib/font";
 import ApplicationContextProvider from "@/providers/application-context-provider";
 import ConvexClientProvider from "@/providers/convex-client-provider";
+import { Toaster } from "@/components/ui/toast";
 
 export const metadata: Metadata = {
   title: "Hiree",
@@ -19,7 +20,10 @@ export default function RootLayout({
         className={`${poppins.variable} ${playfairDisplay.variable} antialiased dark`}
       >
         <ConvexClientProvider>
-          <ApplicationContextProvider>{children}</ApplicationContextProvider>
+          <ApplicationContextProvider>
+            {children}
+            <Toaster />
+          </ApplicationContextProvider>
         </ConvexClientProvider>
       </body>
     </html>
