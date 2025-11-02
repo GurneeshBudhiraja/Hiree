@@ -13,6 +13,7 @@ export type UserInfo = {
   id: string;
   name: string;
   email: string;
+  isAuthenticated: boolean;
 };
 
 export type ApplicationContextType = {
