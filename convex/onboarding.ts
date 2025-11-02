@@ -11,7 +11,7 @@ export const isUserOnboarded = query({
       console.log("👤 `isUserOnboarded` result:", onboardedUser);
       return onboardedUser !== null;
     } catch (error) {
-      console.log("Error in `isUserOnboarded` in onboarding.ts:", (error as Error).message);
+      console.log("⚠️ Error in `isUserOnboarded` in onboarding.ts:", (error as Error).message);
       return false;
     }
   },
@@ -32,7 +32,25 @@ export const completeUserOnboarding = mutation({
       const onboardingUser = await ctx.db.insert("onboardedUser", args);
       return onboardingUser;
     } catch (error) {
-      console.log("Error in `completeUserOnboarding` in onboarding.ts:", (error as Error).message);
+      console.log("⚠️ Error in `completeUserOnboarding` in onboarding.ts:", (error as Error).message);
+      return null;
+    }
+  },
+});
+
+
+
+export const getUserOnboardingInfo = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const onboardingUser = await ctx.db.query("onboardedUser").withIndex("by_userId", q => q.eq("userId", args.userId)).first();
+      console.log("👤 `getUserOnboardingInfo` result:", onboardingUser);
+      return onboardingUser;
+    } catch (error) {
+      console.log("⚠️ Error in `getUserOnboardingInfo` in onboarding.ts:", (error as Error).message);
       return null;
     }
   },
