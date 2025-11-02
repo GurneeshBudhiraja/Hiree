@@ -7,6 +7,7 @@ export const isUserOnboarded = query({
   },
   handler: async (ctx, args) => {
     const onboardedUser = await ctx.db.query("onboardedUser").withIndex("by_userId", q => q.eq("userId", args.userId)).first();
+    console.log("👤 `isUserOnboarded` result:", onboardedUser);
     return onboardedUser !== null;
   },
 });
