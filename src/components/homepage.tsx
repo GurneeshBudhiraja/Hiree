@@ -4,16 +4,32 @@ import SignInWithGoogle from "./sign-in-with-google";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { motion } from "motion/react";
 import { signInWithGoogle as firebaseSignIn, signOutUser } from "@/lib/auth";
+import { useConvex } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { useRouter } from "next/navigation";
 
 function Homepage() {
   const { userInfo, setUserInfo, setIsLoading, isLoading } =
     useApplicationContext();
-
-  const handleGoToDashboard = () => {
-    console.log("Current Context:", {
-      userInfo,
-      isLoading,
-    });
+  const convex = useConvex();
+  const router = useRouter();
+  const handleGoToDashboard = async () => {
+    try {
+      if (!userInfo) return;
+      const isOnboarded = await convex.query(api.onboarding.isUserOnboarded, {
+        userId: userInfo.userId,
+      });
+      if (!isOnboarded) {
+        router.push("/onboarding");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.log(
+        "Error in `handleGoToDashboard` in homepage.tsx:",
+        (error as Error).message
+      );
+    }
   };
 
   const handleSignIn = async () => {
@@ -23,7 +39,6 @@ function Homepage() {
       setUserInfo(user);
     } catch (error) {
       console.error("Sign in failed:", error);
-      // You can add toast notification here for error handling
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +51,6 @@ function Homepage() {
       setUserInfo(null);
     } catch (error) {
       console.error("Sign out failed:", error);
-      // You can add toast notification here for error handling
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +92,7 @@ function Homepage() {
         {!userInfo ? (
           <SignInWithGoogle onClick={handleSignIn} disabled={isLoading} />
         ) : (
+          // Handle go to dashboard button
           <button className="gsi-material-button" onClick={handleGoToDashboard}>
             <div className="gsi-material-button-state"></div>
             <div className="gsi-material-button-content-wrapper">

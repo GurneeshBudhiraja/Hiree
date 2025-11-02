@@ -12,7 +12,7 @@ import {
 import { onAuthStateChange } from "@/lib/auth";
 
 export type UserInfo = {
-  id: string;
+  userId: string;
   name: string;
   email: string;
   isAuthenticated: boolean;

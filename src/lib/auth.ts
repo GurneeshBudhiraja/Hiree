@@ -22,7 +22,7 @@ export async function signInWithGoogle(): Promise<UserInfo> {
     const user = result.user;
 
     return {
-      id: user.uid,
+      userId: user.uid,
       name: user.displayName || "",
       email: user.email || "",
       isAuthenticated: true,
@@ -58,7 +58,7 @@ export async function signOutUser(): Promise<void> {
  */
 export function firebaseUserToUserInfo(user: User): UserInfo {
   return {
-    id: user.uid,
+    userId: user.uid,
     name: user.displayName || "",
     email: user.email || "",
     isAuthenticated: true,
