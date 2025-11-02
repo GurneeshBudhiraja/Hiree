@@ -20,11 +20,18 @@ function OnboardingPage() {
   const [onboardingInfo, setOnboardingInfo] = useState<OnboardingInfo | null>(
     null
   );
-  const { userInfo, setError } = useApplicationContext();
+  const { userInfo, setError, setIsLoading } = useApplicationContext();
   const convex = useConvex();
   const [currentJobTitleInput, setCurrentJobTitleInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const resumeUploaded = onboardingInfo?.resumeUploaded ?? false;
+
+  // Helper function to reset all local states
+  const resetOnboardingState = () => {
+    setOnboardingInfo(null);
+    setCurrentJobTitleInput("");
+  };
 
   const handleJobTitleChange = (value: string) => {
     setCurrentJobTitleInput(value);
@@ -56,29 +63,74 @@ function OnboardingPage() {
   const handleFinishSetup = async () => {
     if (!onboardingInfo) {
       console.log("❌ No onboarding info found");
+      setError("No onboarding information found. Please try again.");
       return;
     }
 
     if (!userInfo) {
       console.log("❌ No user info found");
+      setError("User information not found. Please sign in again.");
       return;
     }
 
-    const onboardingUser = await convex.mutation(
-      api.onboarding.completeUserOnboarding,
-      {
-        jobLocation: onboardingInfo.jobLocation,
-        parsedResume: onboardingInfo.parsedResumeContent,
-        targetJobTitle: onboardingInfo.targetJobTitles,
-        userId: userInfo.userId,
+    setIsSubmitting(true);
+    setIsLoading(true);
+
+    try {
+      // Step 1: Complete user onboarding
+      const onboardingUser = await convex.mutation(
+        api.onboarding.completeUserOnboarding,
+        {
+          jobLocation: onboardingInfo.jobLocation,
+          parsedResume: onboardingInfo.parsedResumeContent,
+          targetJobTitle: onboardingInfo.targetJobTitles,
+          userId: userInfo.userId,
+        }
+      );
+
+      if (!onboardingUser) {
+        console.log("❌ Failed to complete user onboarding");
+        setError("Failed to complete user onboarding. Please try again.");
+        resetOnboardingState();
+        return;
       }
-    );
-    if (!onboardingUser) {
-      console.log("❌ Failed to complete user onboarding");
-      setError("Failed to complete user onboarding");
-      return;
+
+      // Step 2: Set the default workflow
+      const defaultWorkflow = await convex.mutation(
+        api.workflow.setDefaultWorkflow,
+        {
+          userId: userInfo.userId,
+          showDefaultWorkflow: true,
+        }
+      );
+
+      if (!defaultWorkflow) {
+        console.log("❌ Failed to set default workflow");
+        setError("Failed to set default workflow. Please try again.");
+
+        // Rollback: Remove the onboarding user since workflow setup failed
+        try {
+          await convex.mutation(api.onboarding.removeUserOnboarding, {
+            userId: userInfo.userId,
+          });
+        } catch (rollbackError) {
+          console.error("❌ Failed to rollback onboarding:", rollbackError);
+        }
+
+        resetOnboardingState();
+        return;
+      }
+
+      // Success: Redirect to dashboard
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("❌ Error in handleFinishSetup:", error);
+      setError("An unexpected error occurred. Please try again.");
+      resetOnboardingState();
+    } finally {
+      setIsSubmitting(false);
+      setIsLoading(false);
     }
-    router.push("/dashboard");
   };
 
   return (
@@ -200,9 +252,17 @@ function OnboardingPage() {
                 >
                   <button
                     onClick={handleFinishSetup}
-                    className="px-6 py-3 bg-foreground text-background rounded-lg font-medium hover:bg-foreground/90 transition-colors"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-foreground text-background rounded-lg font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    Finish Setup
+                    {isSubmitting ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      "Finish Setup"
+                    )}
                   </button>
                 </motion.div>
               )}

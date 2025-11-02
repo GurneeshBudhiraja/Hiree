@@ -8,4 +8,9 @@ export default defineSchema({
     targetJobTitle: v.array(v.string()),
     jobLocation: v.string(),
   }).index("by_userId", ["userId"]),
+
+  userWorkflow: defineTable({
+    userId: v.string(),
+    showDefaultWorkflow: v.boolean(),
+  }).index("by_userId", ["userId"]),
 });

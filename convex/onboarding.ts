@@ -1,6 +1,10 @@
+import { api } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+/**
+ * Checks if a user is onboarded
+ */
 export const isUserOnboarded = query({
   args: {
     userId: v.string(),
@@ -19,6 +23,9 @@ export const isUserOnboarded = query({
 
 
 
+/**
+ * Completes the user onboarding process
+ */
 export const completeUserOnboarding = mutation({
   args: {
     userId: v.string(),
@@ -39,7 +46,9 @@ export const completeUserOnboarding = mutation({
 });
 
 
-
+/**
+ * Retrieves the onboarding information for a user
+ */
 export const getUserOnboardingInfo = query({
   args: {
     userId: v.string(),
@@ -57,6 +66,29 @@ export const getUserOnboardingInfo = query({
     } catch (error) {
       console.log("⚠️ Error in `getUserOnboardingInfo` in onboarding.ts:", (error as Error).message);
       return null;
+    }
+  },
+});
+
+
+
+/**
+ * Remove the onboarded user workflow
+ */
+export const removeUserOnboarding = mutation({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const onboardingUser = await ctx.db.query("onboardedUser").withIndex("by_userId", q => q.eq("userId", args.userId)).first();
+      if (!onboardingUser) return null;
+      await ctx.db.delete(onboardingUser._id);
+      console.log("👤 removed onboarding user in `removeUserOnboarding`...");
+      return true;
+    } catch (error) {
+      console.log("⚠️ Error in `removeUserOnboarding` in onboarding.ts:", (error as Error).message);
+      return false;
     }
   },
 });
